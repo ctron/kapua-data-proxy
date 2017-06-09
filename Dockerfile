@@ -10,6 +10,6 @@ RUN wget http://apache.cs.uu.nl/maven/maven-3/${MAVEN_VERSION}/binaries/apache-m
   tar xzf apache-maven-${MAVEN_VERSION}-bin.tar.gz
 
 COPY . /
-RUN apache-maven-${MAVEN_VERSION}/bin/mvn package && mv target/*-app.jar /app.jar
+RUN apache-maven-${MAVEN_VERSION}/bin/mvn --batch-mode package && mv target/*-app.jar /app.jar
 
 ENTRYPOINT ["/usr/bin/java", "-jar", "/app.jar" ]
