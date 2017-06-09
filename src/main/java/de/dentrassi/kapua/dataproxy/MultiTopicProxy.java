@@ -16,6 +16,7 @@ import static java.time.Instant.now;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,18 +46,21 @@ public class MultiTopicProxy implements Runnable {
 
     public static class State {
 
+        private Set<String> fields;
         private Payload.Builder payload = new Payload.Builder();
 
         private Instant expires = Instant.now();
 
         private String device;
 
-        public State(final String device, final Instant expires) {
+        public State(final String device, final Instant expires, final Set<String> requiredFields) {
             this.device = device;
             this.expires = expires;
+            this.fields = new HashSet<>(requiredFields);
         }
 
         public void add(final String key, final FieldHandler handler, final String value) throws Exception {
+            fields.remove(key);
             handler.handle(key, value, payload);
         }
 
@@ -65,7 +69,7 @@ public class MultiTopicProxy implements Runnable {
         }
 
         public boolean hasAll(Set<String> requiredFields) {
-            return payload.values().keySet().containsAll(requiredFields);
+            return fields.isEmpty();
         }
 
         public boolean isTimedOut() {
@@ -209,7 +213,7 @@ public class MultiTopicProxy implements Runnable {
             State state = states.get(device);
             if (state == null || state.isTimedOut()) {
                 logger.debug("Start new state for: {}", device);
-                state = new State(device, now().plus(dataPeriod));
+                state = new State(device, now().plus(dataPeriod), requiredFields.keySet());
                 states.put(device, state);
             }
 

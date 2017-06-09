@@ -12,6 +12,8 @@
 package de.dentrassi.kapua.dataproxy.main;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +50,7 @@ public class Main {
 
                     final Map<String, FieldHandler> fields = new HashMap<>();
 
-                    fields.put("TIME", FieldHandler.timestamp(DateTimeFormatter.ISO_LOCAL_DATE_TIME::parse));
+                    fields.put("TIME", FieldHandler.timestamp(value -> LocalDateTime.from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(value)).atZone(ZoneId.of("CET")).toInstant()));
                     fields.put("TEMP", FieldHandler.data(Double::parseDouble));
 
                     new Thread(new MultiTopicProxy("amqp://10.200.68.162:5672", "secret", "fooBAR", "tele", fields, Duration.ofSeconds(1), executor, proxyApplication))

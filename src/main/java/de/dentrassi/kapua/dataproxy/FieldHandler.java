@@ -12,7 +12,6 @@
 package de.dentrassi.kapua.dataproxy;
 
 import java.time.Instant;
-import java.time.temporal.TemporalAccessor;
 
 import org.eclipse.kapua.gateway.client.Payload;
 
@@ -25,7 +24,7 @@ public interface FieldHandler {
         return (key, value, payload) -> payload.put(key, parser.parse(value));
     }
 
-    public static FieldHandler timestamp(final Parser<TemporalAccessor> parser) {
+    public static FieldHandler timestamp(final Parser<Instant> parser) {
         return (key, value, payload) -> payload.timestamp(Instant.from(parser.parse(value)));
     }
 }
