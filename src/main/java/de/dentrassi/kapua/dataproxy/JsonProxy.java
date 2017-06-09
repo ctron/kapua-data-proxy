@@ -59,13 +59,15 @@ public class JsonProxy extends AbstractProxy implements Runnable {
     @Override
     public void run() {
         while (true) {
+            logger.info("Entering message loop");
             try {
                 runOnce();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.warn("Failed to run message loop", e);
                 try {
                     Thread.sleep(1_000);
                 } catch (InterruptedException e1) {
+                    logger.warn("Go interrupted, exiting ...", e1);
                     return;
                 }
             }

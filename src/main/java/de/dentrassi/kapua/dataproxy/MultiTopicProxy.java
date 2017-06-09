@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.jms.BytesMessage;
@@ -118,23 +119,25 @@ public class MultiTopicProxy extends AbstractProxy implements Runnable {
 
     @Override
     public void run() {
-        executor.scheduleAtFixedRate(this::evict, dataPeriod.toMillis(), dataPeriod.toMillis(), TimeUnit.MILLISECONDS);
+        final ScheduledFuture<?> job = executor.scheduleAtFixedRate(this::evict, dataPeriod.toMillis(), dataPeriod.toMillis(), TimeUnit.MILLISECONDS);
 
         try {
             while (true) {
+                logger.info("Entering message loop");
                 try {
                     runOnce();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     logger.warn("Failed to run message loop", e);
                     try {
                         Thread.sleep(1_000);
-                    } catch (InterruptedException e1) {
+                    } catch (final InterruptedException e1) {
+                        logger.warn("Go interrupted, exiting ...", e1);
                         return;
                     }
                 }
             }
         } finally {
-
+            job.cancel(false);
         }
     }
 
@@ -223,7 +226,6 @@ public class MultiTopicProxy extends AbstractProxy implements Runnable {
             }
         }
     }
-
 
     private static Optional<org.eclipse.kapua.gateway.client.Topic> makeTopic(final Destination source) throws JMSException {
         if (source instanceof Topic) {
