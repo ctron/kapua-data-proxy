@@ -50,7 +50,10 @@ public class Main {
 
                     final Map<String, FieldHandler> fields = new HashMap<>();
 
-                    fields.put("TIME", FieldHandler.timestamp(value -> LocalDateTime.from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(value)).atZone(ZoneId.of("CET")).toInstant()));
+                    fields.put("TIME", FieldHandler.timestamp(value -> {
+                        final LocalDateTime ldt = LocalDateTime.from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(value));
+                        return ldt.atZone(ZoneId.of("+1")).toInstant();
+                    }));
                     fields.put("TEMP", FieldHandler.data(Double::parseDouble));
 
                     new Thread(new MultiTopicProxy("amqp://10.200.68.162:5672", "secret", "fooBAR", "tele", fields, Duration.ofSeconds(1), executor, proxyApplication))
