@@ -79,7 +79,7 @@ public class JsonProxy implements Runnable {
         try (final Connection connection = factory.createConnection()) {
             connection.start();
 
-            try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+            try (final Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
                 final Destination dest;
                 if (baseTopic != null && !baseTopic.isEmpty()) {
                     dest = session.createTopic(baseTopic + ".#");
@@ -90,8 +90,10 @@ public class JsonProxy implements Runnable {
                 logger.info("Proxying for: {}", dest);
 
                 try (final MessageConsumer consumer = session.createConsumer(dest)) {
+                    logger.info("Running loop");
                     while (true) {
                         final Message message = consumer.receive();
+                        logger.debug("Received message: {}", message);
                         if (message instanceof BytesMessage) {
                             processMessage((BytesMessage) message);
                         }
