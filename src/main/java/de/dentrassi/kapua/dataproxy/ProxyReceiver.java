@@ -11,12 +11,10 @@
  *******************************************************************************/
 package de.dentrassi.kapua.dataproxy;
 
-import java.time.Instant;
-import java.util.Map;
-
+import org.eclipse.kapua.gateway.client.Payload;
 import org.eclipse.kapua.gateway.client.Topic;
 
 public interface ProxyReceiver {
 
-    public void dataChange(Topic topic, Instant timestamp, Map<String, ?> values) throws Exception;
+    public void dataChange(Topic topic, Payload payload) throws Exception;
 }

@@ -11,7 +11,6 @@
  *******************************************************************************/
 package de.dentrassi.kapua.dataproxy;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +27,7 @@ import javax.jms.Session;
 import javax.jms.Topic;
 
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.eclipse.kapua.gateway.client.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,12 +112,13 @@ public class JsonProxy implements Runnable {
             return;
         }
 
-        final String payload = new String(message.getBody(byte[].class), StandardCharsets.UTF_8);
-        final Map<String, Object> values = parseValues(payload);
+        final String payload = Bytes.getAsString(message);
 
+        final Map<String, Object> values = parseValues(payload);
         final Instant timestamp = createTimestamp(message, values);
 
-        proxyReceiver.dataChange(topic.get(), timestamp, values);
+        logger.debug("Publish: {} -> {} / {}", topic, timestamp, values);
+        proxyReceiver.dataChange(topic.get(), Payload.of(timestamp, values));
     }
 
     private Instant createTimestamp(final Message message, final Map<String, Object> values) throws JMSException {
@@ -135,7 +136,12 @@ public class JsonProxy implements Runnable {
     }
 
     private static Map<String, Object> parseValues(final String payload) {
-        return new GsonBuilder().create().<Map<String, Object>> fromJson(payload, Map.class);
+        try {
+            return new GsonBuilder().create().<Map<String, Object>> fromJson(payload, Map.class);
+        } catch (Exception e) {
+            logger.warn("Failed to decode payload: {}", payload, e);
+            throw e;
+        }
     }
 
     private static Optional<org.eclipse.kapua.gateway.client.Topic> makeTopic(Destination source) throws JMSException {

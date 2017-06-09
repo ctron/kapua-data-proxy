@@ -13,10 +13,6 @@ package de.dentrassi.kapua.dataproxy;
 
 import static java.util.Objects.requireNonNull;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.kapua.gateway.client.Application;
 import org.eclipse.kapua.gateway.client.Client;
 import org.eclipse.kapua.gateway.client.Payload;
@@ -52,12 +48,11 @@ public final class ProxyApplication implements AutoCloseable, ProxyReceiver {
     }
 
     @Override
-    public void dataChange(final Topic topic, final Instant timestamp, final Map<String, ?> values) throws Exception {
+    public void dataChange(final Topic topic, Payload payload) throws Exception {
         requireNonNull(topic);
-        requireNonNull(timestamp);
-        requireNonNull(values);
+        requireNonNull(payload);
 
-        application.data(topic).send(Payload.of(timestamp, new HashMap<>(values)));
+        application.data(topic).send(payload);
     }
 
 }

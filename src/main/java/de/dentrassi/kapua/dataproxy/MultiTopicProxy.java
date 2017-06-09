@@ -13,7 +13,6 @@ package de.dentrassi.kapua.dataproxy;
 
 import static java.time.Instant.now;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -38,6 +37,7 @@ import javax.jms.Session;
 import javax.jms.Topic;
 
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.eclipse.kapua.gateway.client.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,7 @@ public class MultiTopicProxy implements Runnable {
 
     public static class State {
 
-        private Map<String, Object> payload = new HashMap<>();
+        private Payload.Builder payload = new Payload.Builder();
 
         private Instant expires = Instant.now();
 
@@ -56,16 +56,16 @@ public class MultiTopicProxy implements Runnable {
             this.expires = expires;
         }
 
-        public void add(String key, FieldHandler handler, String value) {
-            this.payload.put(key, value);
+        public void add(final String key, final FieldHandler handler, final String value) throws Exception {
+            handler.handle(key, value, payload);
         }
 
-        public Map<String, ?> getValues() {
-            return payload;
+        public Payload getPayload() {
+            return payload.build();
         }
 
         public boolean hasAll(Set<String> requiredFields) {
-            return payload.keySet().containsAll(requiredFields);
+            return payload.values().keySet().containsAll(requiredFields);
         }
 
         public boolean isTimedOut() {
@@ -186,8 +186,7 @@ public class MultiTopicProxy implements Runnable {
             return;
         }
 
-        final String payload = new String(message.getBody(byte[].class), StandardCharsets.UTF_8);
-        handleChange(topic.get(), payload);
+        handleChange(topic.get(), Bytes.getAsString(message));
     }
 
     private void handleChange(org.eclipse.kapua.gateway.client.Topic topic, String value) throws Exception {
@@ -225,7 +224,7 @@ public class MultiTopicProxy implements Runnable {
 
     private void publish(final List<String> topic, final State state) throws Exception {
         logger.debug("Publish: {} -> {}", topic, state);
-        proxyReceiver.dataChange(org.eclipse.kapua.gateway.client.Topic.of(topic), Instant.now(), state.getValues());
+        proxyReceiver.dataChange(org.eclipse.kapua.gateway.client.Topic.of(topic), state.getPayload());
     }
 
     private static Optional<org.eclipse.kapua.gateway.client.Topic> makeTopic(final Destination source) throws JMSException {
