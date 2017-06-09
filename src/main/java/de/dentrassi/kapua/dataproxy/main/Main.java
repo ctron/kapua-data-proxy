@@ -9,7 +9,7 @@
  * Contributors:
  *     Red Hat Inc - initial API and implementation
  *******************************************************************************/
-package de.dentrassi.kapua.dataproxy;
+package de.dentrassi.kapua.dataproxy.main;
 
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
@@ -23,11 +23,15 @@ import org.eclipse.kapua.gateway.client.Credentials;
 import org.eclipse.kapua.gateway.client.mqtt.fuse.FuseClient;
 import org.eclipse.kapua.gateway.client.profile.kura.KuraMqttProfile;
 
+import de.dentrassi.kapua.dataproxy.FieldHandler;
+import de.dentrassi.kapua.dataproxy.JsonProxy;
+import de.dentrassi.kapua.dataproxy.MultiTopicProxy;
+import de.dentrassi.kapua.dataproxy.ProxyApplication;
+
 public class Main {
 
     public static void main(String[] args) throws Exception {
-
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         try {
 
             try (final Client client = KuraMqttProfile.newProfile(FuseClient.Builder::new)
@@ -44,8 +48,8 @@ public class Main {
 
                     final Map<String, FieldHandler> fields = new HashMap<>();
 
-                    fields.put("TIME", FieldHandler.timestamp (DateTimeFormatter.ISO_LOCAL_DATE_TIME::parse));
-                    fields.put("TEMP", FieldHandler.data (Double::parseDouble));
+                    fields.put("TIME", FieldHandler.timestamp(DateTimeFormatter.ISO_LOCAL_DATE_TIME::parse));
+                    fields.put("TEMP", FieldHandler.data(Double::parseDouble));
 
                     new Thread(new MultiTopicProxy("amqp://10.200.68.162:5672", "secret", "fooBAR", "tele", fields, Duration.ofSeconds(1), executor, proxyApplication))
                             .start();
