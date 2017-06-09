@@ -8,7 +8,7 @@
     </encoder>
   </appender>
 
-  <logger name="de.dentrassi.kapua.dataproxy.MultiTopicProxy" level="DEBUG"/>
+  <logger name="de.dentrassi.kapua.dataproxy" level="DEBUG"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
