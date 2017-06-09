@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.GsonBuilder;
 
-public class JsonProxy implements Runnable {
+public class JsonProxy extends AbstractProxy implements Runnable {
 
     private static final String TIMESTAMP_FIELD = "@timestamp";
 
@@ -44,9 +44,9 @@ public class JsonProxy implements Runnable {
     private String password;
     private String baseTopic;
 
-    private ProxyReceiver proxyReceiver;
-
     public JsonProxy(String url, String username, String password, String baseTopic, ProxyReceiver proxyReceiver) {
+        super(proxyReceiver);
+
         Objects.requireNonNull(url);
         Objects.requireNonNull(proxyReceiver);
 
@@ -54,7 +54,6 @@ public class JsonProxy implements Runnable {
         this.username = username;
         this.password = password;
         this.baseTopic = baseTopic;
-        this.proxyReceiver = proxyReceiver;
     }
 
     @Override
@@ -117,8 +116,7 @@ public class JsonProxy implements Runnable {
         final Map<String, Object> values = parseValues(payload);
         final Instant timestamp = createTimestamp(message, values);
 
-        logger.debug("Publish: {} -> {} / {}", topic, timestamp, values);
-        proxyReceiver.dataChange(topic.get(), Payload.of(timestamp, values));
+        publish(topic.get(), Payload.of(timestamp, values));
     }
 
     private Instant createTimestamp(final Message message, final Map<String, Object> values) throws JMSException {

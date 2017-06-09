@@ -18,7 +18,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -42,7 +41,7 @@ import org.eclipse.kapua.gateway.client.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MultiTopicProxy implements Runnable {
+public class MultiTopicProxy extends AbstractProxy implements Runnable {
 
     public static class State {
 
@@ -92,14 +91,14 @@ public class MultiTopicProxy implements Runnable {
     private Map<String, FieldHandler> requiredFields;
     private Duration dataPeriod;
 
-    private ProxyReceiver proxyReceiver;
-
     private Map<String, State> states = new HashMap<>();
 
     private ScheduledExecutorService executor;
 
     public MultiTopicProxy(final String url, final String username, final String password, final String baseTopic, final Map<String, FieldHandler> requiredFields, final Duration dataPeriod,
             final ScheduledExecutorService executor, final ProxyReceiver proxyReceiver) {
+        super(proxyReceiver);
+
         Objects.requireNonNull(url);
         Objects.requireNonNull(proxyReceiver);
         Objects.requireNonNull(requiredFields);
@@ -115,7 +114,6 @@ public class MultiTopicProxy implements Runnable {
         this.dataPeriod = dataPeriod;
 
         this.executor = executor;
-        this.proxyReceiver = proxyReceiver;
     }
 
     @Override
@@ -221,15 +219,11 @@ public class MultiTopicProxy implements Runnable {
 
             if (state.hasAll(requiredFields.keySet())) {
                 states.remove(device);
-                publish(topic.getSegments().subList(0, topic.getSegments().size() - 1), state);
+                publish(org.eclipse.kapua.gateway.client.Topic.of(topic.getSegments().subList(0, topic.getSegments().size() - 1)), state.getPayload());
             }
         }
     }
 
-    private void publish(final List<String> topic, final State state) throws Exception {
-        logger.debug("Publish: {} -> {}", topic, state);
-        proxyReceiver.dataChange(org.eclipse.kapua.gateway.client.Topic.of(topic), state.getPayload());
-    }
 
     private static Optional<org.eclipse.kapua.gateway.client.Topic> makeTopic(final Destination source) throws JMSException {
         if (source instanceof Topic) {
