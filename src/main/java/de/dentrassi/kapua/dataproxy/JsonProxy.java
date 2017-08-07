@@ -33,27 +33,61 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.GsonBuilder;
 
+import de.dentrassi.kapua.dataproxy.config.Broker;
+import de.dentrassi.kapua.dataproxy.util.Bytes;
+
 public class JsonProxy extends AbstractProxy implements Runnable {
 
     private static final String TIMESTAMP_FIELD = "@timestamp";
 
     private static final Logger logger = LoggerFactory.getLogger(JsonProxy.class);
 
+    public static class Configuration {
+
+        private Broker broker;
+
+        private String baseTopic;
+
+        public void setBroker(Broker broker) {
+            this.broker = broker;
+        }
+
+        public Broker getBroker() {
+            return broker;
+        }
+
+        public void setBaseTopic(String baseTopic) {
+            this.baseTopic = baseTopic;
+        }
+
+        public String getBaseTopic() {
+            return baseTopic;
+        }
+    }
+
     private String url;
     private String username;
     private String password;
     private String baseTopic;
 
-    public JsonProxy(String url, String username, String password, String baseTopic, ProxyReceiver proxyReceiver) {
+    public JsonProxy(final String url, final String username, final String password, final String baseTopic, final ProxyReceiver proxyReceiver) {
         super(proxyReceiver);
 
         Objects.requireNonNull(url);
-        Objects.requireNonNull(proxyReceiver);
 
         this.url = url;
         this.username = username;
         this.password = password;
         this.baseTopic = baseTopic;
+    }
+
+    public JsonProxy(final Configuration configuration, final ProxyReceiver proxyReceiver) {
+        this(
+                configuration.getBroker().getUrl().toString(),
+                configuration.getBroker().getUser(),
+                configuration.getBroker().getPassword(),
+                configuration.getBaseTopic(),
+                proxyReceiver);
     }
 
     @Override
@@ -138,13 +172,13 @@ public class JsonProxy extends AbstractProxy implements Runnable {
     private static Map<String, Object> parseValues(final String payload) {
         try {
             return new GsonBuilder().create().<Map<String, Object>> fromJson(payload, Map.class);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.warn("Failed to decode payload: {}", payload, e);
             throw e;
         }
     }
 
-    private static Optional<org.eclipse.kapua.gateway.client.Topic> makeTopic(Destination source) throws JMSException {
+    private static Optional<org.eclipse.kapua.gateway.client.Topic> makeTopic(final Destination source) throws JMSException {
         if (source instanceof Topic) {
             return parseTopic(((Topic) source).getTopicName());
         } else if (source instanceof Queue) {
@@ -153,7 +187,7 @@ public class JsonProxy extends AbstractProxy implements Runnable {
         return Optional.empty();
     }
 
-    private static Optional<org.eclipse.kapua.gateway.client.Topic> parseTopic(String name) {
+    private static Optional<org.eclipse.kapua.gateway.client.Topic> parseTopic(final String name) {
         if (name == null || name.isEmpty()) {
             return Optional.empty();
         }

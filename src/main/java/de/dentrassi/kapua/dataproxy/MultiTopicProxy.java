@@ -42,6 +42,9 @@ import org.eclipse.kapua.gateway.client.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.dentrassi.kapua.dataproxy.util.Bytes;
+import de.dentrassi.kapua.dataproxy.util.FieldHandler;
+
 public class MultiTopicProxy extends AbstractProxy implements Runnable {
 
     public static class State {

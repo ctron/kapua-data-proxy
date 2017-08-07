@@ -1,0 +1,48 @@
+{
+  "kapua": {
+    "broker": {
+      "url": "tcp://adaris.muc.redhat.com:31883",
+      "user": "kapua-broker",
+      "password": "kapua-password"
+    },
+    "accountName": "kapua-sys",
+    "clientId": "proxy-2"
+  },
+  "proxies": {
+    "proxy1": {
+      "type": "json",
+      "configuration": {
+        "broker": {
+          "url": "amqp://10.200.68.162:5672",
+          "user": "secret",
+          "password": "fooBAR"
+        }
+      }
+    },
+    "proxy2": {
+      "type": "multi",
+      "configuration": {
+        "broker": {
+          "url": "amqp://10.200.68.162:5672",
+          "user": "secret",
+          "password": "fooBAR"
+        },
+        "fields": {
+          "TEMP": {
+            "handler": {
+              "data": "double"
+            }
+          },
+          "TIME": {
+            "handler": {
+              "timestamp": {
+                "pattern": "YYYY-MM-DD'T'HH:MM:SS",
+                "timezone": "+1"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

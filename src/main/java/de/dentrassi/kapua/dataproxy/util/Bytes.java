@@ -9,7 +9,7 @@
  * Contributors:
  *     Red Hat Inc - initial API and implementation
  *******************************************************************************/
-package de.dentrassi.kapua.dataproxy;
+package de.dentrassi.kapua.dataproxy.util;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
